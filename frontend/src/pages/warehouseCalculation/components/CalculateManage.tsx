@@ -1,4 +1,4 @@
-import  { useCallback, useEffect,  useRef,  useState } from "react";
+import  { useCallback, useEffect,  useLayoutEffect,  useRef,  useState } from "react";
 import _ from "lodash";
 import {
   DndContext,
@@ -16,6 +16,7 @@ import { TypeWarehouseCompile } from "@/types/response/reponse.mswarehouse";
 import { TypeCalBox } from "@/types/response/reponse.cal_box";
 import { CalculateManageProps, ShelfMap } from "../type";
 import { TypeShelfBoxStorage } from "@/types/response/reponse.msproduct";
+import { useNavigate } from "react-router-dom";
 
 const FormateCalBoxToShelfBoxStrorage = ({
   box,
@@ -69,14 +70,14 @@ export const CalculateManage = ({
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
     useSensor(MouseSensor)
   );
-
+  const navigate = useNavigate();
   const [shelfMap, setShelfMap] = useState<ShelfMap>({});
-  const initialShelfMap = useRef<ShelfMap>({}); // ✅ เก็บค่าเริ่มต้นเพื่อใช้เปรียบเทียบ
+  const [overStorage, setOverStorage] = useState<boolean>(false);
+  const initialShelfMap = useRef<ShelfMap>({}); 
 
   const StorageCompile = useCallback(() => {
     if (!storage) return {};
     const map: ShelfMap = {};
-
     storage.masterzone?.forEach((zone) => {
       zone.racks?.forEach((rack) => {
         rack.shelves?.forEach((shelf) => {
@@ -106,19 +107,22 @@ export const CalculateManage = ({
   }, [storage]);
 
   const distributeBoxes = useCallback(
-    (boxes: TypeCalBox[], shelfMap: ShelfMap): ShelfMap => {
-      const newMap: ShelfMap = { ...shelfMap };
+  (boxes: TypeCalBox[], shelfMap: ShelfMap): ShelfMap => {
+    const newMap: ShelfMap = { ...shelfMap };
+    for (const box of boxes) {
+      if (!master_warehouse_id || !cal_warehouse_id) continue;
+      const alreadyPlaced = Object.values(newMap).some((shelf) =>
+        shelf.stored_boxes.some((b) => b.cal_box_id === box.cal_box_id)
+      );
+     
+      if (alreadyPlaced) continue;
 
-      for (const box of boxes) {
-        if (!master_warehouse_id || !cal_warehouse_id) continue;
+      let placed = false;
+ 
+      for (const shelfId in newMap) {
+        const shelf = newMap[shelfId];
 
-        const alreadyPlaced = Object.values(newMap).some((shelf) =>
-          shelf.stored_boxes.some((b) => b.cal_box_id === box.cal_box_id)
-        );
-        if (alreadyPlaced) continue;
-
-        for (const shelfId in newMap) {
-          const shelf = newMap[shelfId];
+        if (shelf.remainingVolume >= (box.cubic_centimeter_box || 0)) {
           const shelfBoxStorage = FormateCalBoxToShelfBoxStrorage({
             box,
             warehouseId: master_warehouse_id,
@@ -128,21 +132,36 @@ export const CalculateManage = ({
             cal_warehouse_id,
           });
 
-          if (shelf.remainingVolume >= (box.cubic_centimeter_box || 0)) {
-            newMap[shelfId] = {
-              ...shelf,
-              stored_boxes: [...shelf.stored_boxes, shelfBoxStorage],
-              remainingVolume: shelf.remainingVolume - (box.cubic_centimeter_box || 0),
-            };
-            break;
-          }
+          newMap[shelfId] = {
+            ...shelf,
+            stored_boxes: [...shelf.stored_boxes, shelfBoxStorage],
+            remainingVolume: shelf.remainingVolume - (box.cubic_centimeter_box || 0),
+          };
+
+          placed = true;
+          break;
         }
       }
+   
+  if (!placed) {
+   setOverStorage(true);
+  }
+    }
 
-      return newMap;
-    },
-    [master_warehouse_id, cal_warehouse_id]
+    return newMap;
+  },
+  [master_warehouse_id, cal_warehouse_id]
+);
+
+
+useLayoutEffect(()=>{
+  if (overStorage ) {
+  alert(
+    `❗ กล่อง  ใหญ่เกินกว่าจะวางใน shelf ใด ๆ ได้`
   );
+  navigate(-1);
+}
+},[navigate, overStorage])
 
 const handleDragEnd = useCallback((event: DragEndEvent) => {
   const { active, over } = event;
@@ -300,9 +319,11 @@ const handleDragEnd = useCallback((event: DragEndEvent) => {
     onCompiles?.(allShelfBoxes);
   }, [onCompiles, shelfMap]);
 
+
   return (
-    <div id="scroll-root" className="absolute inset-0 overflow-auto w-full">
-      <DndContext
+    <div id="scroll-root" className="absolute inset-0 overflow-auto w-full pt-4 p-5">
+
+      {!overStorage ?   <DndContext
         sensors={sensors}
         collisionDetection={rectIntersection}
         onDragStart={() => {
@@ -320,7 +341,8 @@ const handleDragEnd = useCallback((event: DragEndEvent) => {
         }}
       >
         <StorageRebder storage={storage} shelfMap={shelfMap} cal_warehouse_id={cal_warehouse_id!} />
-      </DndContext>
+      </DndContext> :<div>Error over size</div>}
+   
     </div>
   );
 };
@@ -331,7 +353,7 @@ const generateColor = (index: number) => {
 };
 export const StorageRebder = ({ storage, shelfMap,cal_warehouse_id }: { cal_warehouse_id:string,shelfMap: ShelfMap; storage: TypeWarehouseCompile }) => {
   return (
-  <div className="lg:p-4 space-y-6">
+  <div className="space-y-6">
     <h2 className="text-xl font-bold">{`Warehouse: ${storage.master_warehouse_name}`}</h2>
     {storage.masterzone?.map((zone, zoneIndex) => (
       <div key={zone.master_zone_id} className="border rounded p-4" style={{ border: `2px solid ${generateColor(zoneIndex)}` }}>

@@ -33,18 +33,17 @@ navigate('/calwarehouseTable')
   }
 }
 
-
 }
 
-    return <div className={`bg-white  w-full h-[80vh] lg:h-[90vh]  lg:p-5 absolute  transition-opacity  opacity-0 top-0 ${showCalculateDialog ? 'opacity-100 z-30 ':'-z-10'}`}>
+    return <div className={`bg-white shadow-inner px-4 w-full h-full  absolute  transition-opacity  opacity-0 top-0 ${showCalculateDialog ? 'opacity-100 z-30 ':'-z-10'}`}>
         <div className=" relative flex flex-col size-full">
-            <div className="flex-none ">
+            <div className="flex-none hidden ">
                 <div className="text-xl font-bold mb-4">
                     {/* Calculation Summary {saveStatus ? '✅' : '❌'} */}
                 </div>
             </div>
-            <div className="grow relative">
-          { dataCompile && boxs && <CalculateManage onCompiles={setShelflStorage} storage={dataCompile} boxs={boxs} cal_warehouse_id={calwarehouse.cal_warehouse_id} master_warehouse_id={warehouseId}/>}
+            <div className="grow relative ">
+          { showCalculateDialog && dataCompile && boxs && <CalculateManage onCompiles={setShelflStorage} storage={dataCompile} boxs={boxs} cal_warehouse_id={calwarehouse.cal_warehouse_id} master_warehouse_id={warehouseId}/>}
             </div>
             <div className="flex-none  mt-6 flex justify-end gap-4 border-t pt-4">
                 <DialogSaveCalwarehouse onConfirm={handleSave} color={actionEdit ? 'purple' :'green'}>

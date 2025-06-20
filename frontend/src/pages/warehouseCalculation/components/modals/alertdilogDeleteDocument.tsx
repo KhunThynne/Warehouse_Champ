@@ -8,7 +8,7 @@ type DialogDeleteWarehouseProps = {
     document_warehouse_no: string;
 }
 
-const AlrtdilogDeleteDocument = ({ getCalWarehouseData, cal_warehouse_id }: DialogDeleteWarehouseProps) => {
+const alertdilogDeleteDocument = ({ getCalWarehouseData, cal_warehouse_id }: DialogDeleteWarehouseProps) => {
     const handleDeleteCalWarehouse = async () => {
         try {
             //console.log("Deleting document with ID:", cal_warehouse_id);
@@ -81,4 +81,4 @@ const AlrtdilogDeleteDocument = ({ getCalWarehouseData, cal_warehouse_id }: Dial
     );
 };
 
-export default AlrtdilogDeleteDocument;
+export default alertdilogDeleteDocument;

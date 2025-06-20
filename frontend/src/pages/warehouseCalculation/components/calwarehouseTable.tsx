@@ -12,8 +12,9 @@ import { getMsshelf } from "@/services/msshelf.services";
 import { TypeMswarehouse } from "@/types/response/reponse.mswarehouse";
 import CalEditButton from "./CalEditButton";
 import { shelfBoxStorageService } from "@/services/shelfBoxStorage.services";
-import AlrtdilogDeleteDocument from "./modals/alrtdilogDeleteDocument";
+import alertdilogDeleteDocument from "./modals/alertdilogDeleteDocument";
 import DilogAddCalwarehouse from "./modals/dilogAddCalwarehouse";
+import AlertdilogDeleteDocument from "./modals/alertdilogDeleteDocument";
 
 const CalWarehouseTable = () => {
     const navigate = useNavigate();
@@ -283,7 +284,7 @@ const CalWarehouseTable = () => {
                                             </Table.Cell>
                                             <Table.Cell className="px-6 py-4">
                                                 <div className="flex justify-center">
-                                                    <AlrtdilogDeleteDocument
+                                                    <AlertdilogDeleteDocument
                                                         getCalWarehouseData={getCalWarehouseData}
                                                         cal_warehouse_id={cal_warehouse.cal_warehouse_id}
                                                         document_warehouse_no={cal_warehouse.document_warehouse_no}

@@ -248,8 +248,6 @@ const ZoneDocumentSelector = ({  disables }: {  disables?: { selectProduct?: boo
         setWarehouseId,
         warehouseId,
     } = useCalculateContext();
-
-
     return (
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-10 mt-8 border border-gray-100">
             <hr className="my-6 border-gray-200" />
